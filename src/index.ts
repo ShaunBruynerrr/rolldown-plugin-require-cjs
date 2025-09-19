@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises'
+import path from 'node:path'
 import { init, parse } from 'cjs-module-lexer'
 import { up } from 'empathic/package'
 import { generateTransform, MagicStringAST } from 'magic-string-ast'
@@ -100,7 +101,7 @@ export async function isPureCJS(
     const requireResolved = require.resolve(id, { paths: [importer] })
 
     // different resolution, respect to original behavior
-    if (importResolved !== requireResolved) {
+    if (path.resolve(importResolved) !== path.resolve(requireResolved)) {
       return false
     }
 
