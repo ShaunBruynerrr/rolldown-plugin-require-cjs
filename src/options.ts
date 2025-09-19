@@ -31,7 +31,7 @@ export type OptionsResolved = Overwrite<
 export function resolveOptions(options: Options): OptionsResolved {
   return {
     include: options.include || [/\.[cm]?[jt]sx?$/],
-    exclude: options.exclude || [/node_modules/],
+    exclude: options.exclude || [/node_modules/, /\.d\.[cm]?ts$/],
     order: 'order' in options ? options.order : 'pre',
     shouldTransform: options.shouldTransform,
   }

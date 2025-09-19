@@ -29,7 +29,7 @@ export function RequireCJS(userOptions: Options = {}): Plugin {
       },
       order,
       async handler(code, id) {
-        const { body } = parseAst(code, {}, id)
+        const { body } = parseAst(code, { lang: undefined }, id)
         const s = new MagicStringAST(code)
 
         for (const stmt of body) {
