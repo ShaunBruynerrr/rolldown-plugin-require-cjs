@@ -11,12 +11,23 @@ var __require = /* @__PURE__ */ createRequire(import.meta.url);
 //#endregion
 //#region tests/fixtures/basic.js
 __require("typescript");
-const ns = __require("typescript");
-const { default: _default } = __require("typescript");
+const _cjs_ns_mod = __require("typescript");
+const ns = {
+	..._cjs_ns_mod,
+	default: _cjs_ns_mod
+};
+const _cjs__default_mod = __require("typescript");
+const _default = _cjs__default_mod?.default || _cjs__default_mod;
 const { named, imported: local } = __require("typescript");
-const { default: _default2, named: local2 } = __require("typescript");
-const ns2 = __require("typescript");
-const { default: _default3 } = ns2;
+const _cjs__default2_mod = __require("typescript");
+const _default2 = _cjs__default2_mod?.default || _cjs__default2_mod;
+const { named: local2 } = _cjs__default2_mod;
+const _cjs__default3_mod = __require("typescript");
+const ns2 = {
+	..._cjs__default3_mod,
+	default: _cjs__default3_mod
+};
+const _default3 = _cjs__default3_mod?.default || _cjs__default3_mod;
 __require("force");
 
 //#endregion

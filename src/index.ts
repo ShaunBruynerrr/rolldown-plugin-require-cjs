@@ -55,32 +55,44 @@ export function RequireCJS(userOptions: Options = {}): Plugin {
               s.overwriteNode(stmt, `require(${s.sliceNode(stmt.source)});`)
             } else {
               const mapping: Record<string, string> = {}
+              let modId: string | undefined
               let namespaceId: string | undefined
+              let defaultId: string | undefined
               for (const specifier of stmt.specifiers) {
                 // namespace
                 if (specifier.type === 'ImportNamespaceSpecifier') {
                   // import * as name from 'cjs-module'
                   // const name = require('cjs-module')
                   namespaceId = s.sliceNode(specifier.local)
+                } else if (specifier.type === 'ImportSpecifier') {
+                  // named import
+                  mapping[s.sliceNode(specifier.imported)] = s.sliceNode(
+                    specifier.local,
+                  )
                 } else {
-                  // default or named
-                  mapping[
-                    specifier.type === 'ImportSpecifier'
-                      ? s.sliceNode(specifier.imported)
-                      : 'default'
-                  ] = s.sliceNode(specifier.local)
+                  // default import
+                  defaultId = s.sliceNode(specifier.local)
                 }
               }
               const requireCode = `require(${s.sliceNode(stmt.source)})`
 
               let str = ''
+              if (defaultId || namespaceId) {
+                modId ||= `_cjs_${defaultId || namespaceId}_mod`
+              }
+              if (modId) {
+                str += `const ${modId} = ${requireCode};`
+              }
               if (namespaceId) {
-                str += `const ${namespaceId} = ${requireCode};`
+                str += `const ${namespaceId} = { ...${modId}, default: ${modId} };`
+              }
+              if (defaultId) {
+                str += `const ${defaultId} = ${modId}?.default || ${modId};`
               }
               if (Object.keys(mapping).length > 0) {
                 str += `const { ${Object.entries(mapping)
                   .map(([k, v]) => `${k}: ${v}`)
-                  .join(', ')} } = ${namespaceId || requireCode};`
+                  .join(', ')} } = ${modId || requireCode};`
               }
               s.overwriteNode(stmt, str)
             }
