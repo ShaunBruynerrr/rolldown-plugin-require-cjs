@@ -4,7 +4,7 @@ import { RequireCJS } from '../src'
 
 describe('fixtures', async () => {
   await testFixtures(
-    'fixtures/**.js',
+    'fixtures/*',
     async (args, id) => {
       const { snapshot } = await rolldownBuild(
         id,

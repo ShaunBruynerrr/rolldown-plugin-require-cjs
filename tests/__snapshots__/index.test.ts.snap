@@ -30,3 +30,12 @@ __require("force");
 //#endregion
 export { _default, _default2, _default3, local, local2, named, ns, ns2 };"
 `;
+
+exports[`fixtures > fixtures/type-only.ts 1`] = `
+"// type-only.js
+//#region tests/fixtures/type-only.ts
+console.log(version);
+
+//#endregion
+export {  };"
+`;
