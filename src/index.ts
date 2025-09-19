@@ -35,6 +35,8 @@ export function RequireCJS(userOptions: Options = {}): Plugin {
 
         for (const stmt of body) {
           if (stmt.type === 'ImportDeclaration') {
+            if (stmt.importKind === 'type') continue
+
             const source = stmt.source.value
 
             const resolution = await this.resolve(source, id)
@@ -55,7 +57,6 @@ export function RequireCJS(userOptions: Options = {}): Plugin {
               s.overwriteNode(stmt, `require(${s.sliceNode(stmt.source)});`)
             } else {
               const mapping: Record<string, string> = {}
-              let modId: string | undefined
               let namespaceId: string | undefined
               let defaultId: string | undefined
               for (const specifier of stmt.specifiers) {
@@ -77,22 +78,19 @@ export function RequireCJS(userOptions: Options = {}): Plugin {
               const requireCode = `require(${s.sliceNode(stmt.source)})`
 
               let str = ''
-              if (defaultId || namespaceId) {
-                modId ||= `_cjs_${defaultId || namespaceId}_mod`
-              }
-              if (modId) {
-                str += `const ${modId} = ${requireCode};`
-              }
               if (namespaceId) {
-                str += `const ${namespaceId} = { ...${modId}, default: ${modId} };`
+                defaultId ||= `_cjs_${namespaceId}_mod`
               }
               if (defaultId) {
-                str += `const ${defaultId} = ${modId}?.default || ${modId};`
+                str += `const ${defaultId} = ${requireCode};`
+              }
+              if (namespaceId) {
+                str += `const ${namespaceId} = { ...${defaultId}, default: ${defaultId} };`
               }
               if (Object.keys(mapping).length > 0) {
                 str += `const { ${Object.entries(mapping)
                   .map(([k, v]) => `${k}: ${v}`)
-                  .join(', ')} } = ${modId || requireCode};`
+                  .join(', ')} } = ${defaultId || requireCode};`
               }
               s.overwriteNode(stmt, str)
             }
