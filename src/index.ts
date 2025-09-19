@@ -13,6 +13,7 @@ export * from './options'
 export function RequireCJS(userOptions: Options = {}): Plugin {
   const { include, exclude, order, shouldTransform } =
     resolveOptions(userOptions)
+
   return {
     name: 'rolldown-plugin-require-cjs',
     async buildStart() {

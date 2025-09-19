@@ -2,6 +2,11 @@ type FilterPattern = Array<string | RegExp> | string | RegExp
 
 type Awaitable<T> = T | Promise<T>
 
+export type TransformFn = (
+  id: string,
+  importer: string,
+) => Awaitable<boolean | undefined | void>
+
 export interface Options {
   include?: FilterPattern
   exclude?: FilterPattern
@@ -15,24 +20,26 @@ export interface Options {
    * @param importer The module ID (path) of the importer.
    * @returns A boolean or a promise that resolves to a boolean, or `undefined`.
    */
-  shouldTransform?: (
-    id: string,
-    importer: string,
-  ) => Awaitable<boolean | undefined | void>
+  shouldTransform?: string[] | TransformFn
 }
 
 type Overwrite<T, U> = Pick<T, Exclude<keyof T, keyof U>> & U
 
 export type OptionsResolved = Overwrite<
   Required<Options>,
-  Pick<Options, 'order' | 'shouldTransform'>
+  Pick<Options, 'order'> & { shouldTransform?: TransformFn }
 >
 
 export function resolveOptions(options: Options): OptionsResolved {
+  let { shouldTransform } = options
+  if (Array.isArray(shouldTransform)) {
+    shouldTransform = (id) => (shouldTransform as string[]).includes(id)
+  }
+
   return {
     include: options.include || [/\.[cm]?[jt]sx?$/],
     exclude: options.exclude || [/node_modules/, /\.d\.[cm]?ts$/],
     order: 'order' in options ? options.order : 'pre',
-    shouldTransform: options.shouldTransform,
+    shouldTransform,
   }
 }
