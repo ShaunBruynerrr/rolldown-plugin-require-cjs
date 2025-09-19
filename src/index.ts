@@ -19,9 +19,18 @@ export function RequireCJS(userOptions: Options = {}): Plugin {
     async buildStart() {
       await init()
     },
+    options(options) {
+      if (options.platform !== 'node') {
+        this.error(
+          '`rolldown-plugin-require-cjs` plugin is designed only for the Node.js environment. Please make sure to set `platform: "node"` in the options.',
+        )
+      }
+    },
     outputOptions(options) {
       if (!['es', 'esm', 'module'].includes(options.format as any)) {
-        throw new Error('RequireCJS plugin is only necessary for ESM output')
+        throw new Error(
+          '`rolldown-plugin-require-cjs` plugin is only necessary for ESM output',
+        )
       }
     },
     transform: {
