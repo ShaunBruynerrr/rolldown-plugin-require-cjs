@@ -1,6 +1,6 @@
 {
   "name": "rolldown-plugin-require-cjs",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "packageManager": "pnpm@10.16.1",
   "description": "Transform ESM imports to CJS requires when the imported module is pure CJS.",
   "type": "module",
