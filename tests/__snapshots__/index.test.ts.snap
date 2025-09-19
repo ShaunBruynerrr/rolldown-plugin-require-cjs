@@ -1,0 +1,24 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`fixtures > fixtures/basic.js 1`] = `
+"// basic.js
+import { createRequire } from "node:module";
+import "auto";
+
+//#region rolldown:runtime
+var __require = /* @__PURE__ */ createRequire(import.meta.url);
+
+//#endregion
+//#region tests/fixtures/basic.js
+__require("typescript");
+const ns = __require("typescript");
+const { default: _default } = __require("typescript");
+const { named, imported: local } = __require("typescript");
+const { default: _default2, named: local2 } = __require("typescript");
+const ns2 = __require("typescript");
+const { default: _default3 } = ns2;
+__require("force");
+
+//#endregion
+export { _default, _default2, _default3, local, local2, named, ns, ns2 };"
+`;

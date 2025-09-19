@@ -1,0 +1,23 @@
+import { init } from 'cjs-module-lexer'
+import { describe, expect, test } from 'vitest'
+import { isPureCJS } from '../src'
+
+describe('isPureCJS', async () => {
+  await init()
+
+  test('@babel/parser is pure CJS', async () => {
+    expect(await isPureCJS('@babel/parser', import.meta.url)).toBe(true)
+  })
+
+  test('typescript is pure CJS', async () => {
+    expect(await isPureCJS('typescript', import.meta.url)).toBe(true)
+  })
+
+  test('eslint is pure CJS', async () => {
+    expect(await isPureCJS('eslint', import.meta.url)).toBe(true)
+  })
+
+  test('cjs-module-lexer is not CJS', async () => {
+    expect(await isPureCJS('cjs-module-lexer', import.meta.url)).toBe(false)
+  })
+})
