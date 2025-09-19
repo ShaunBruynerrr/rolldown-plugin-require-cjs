@@ -11,10 +11,10 @@ var __require = /* @__PURE__ */ createRequire(import.meta.url);
 //#endregion
 //#region tests/fixtures/basic.js
 __require("typescript");
-const _cjs_ns_mod = __require("typescript");
+const _cjs_ns_default = __require("typescript");
 const ns = {
-	..._cjs_ns_mod,
-	default: _cjs_ns_mod
+	..._cjs_ns_default,
+	default: _cjs_ns_default
 };
 const _default = __require("typescript");
 const { named, imported: local } = __require("typescript");

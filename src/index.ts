@@ -79,7 +79,7 @@ export function RequireCJS(userOptions: Options = {}): Plugin {
 
               let str = ''
               if (namespaceId) {
-                defaultId ||= `_cjs_${namespaceId}_mod`
+                defaultId ||= `_cjs_${namespaceId}_default`
               }
               if (defaultId) {
                 str += `const ${defaultId} = ${requireCode};`
