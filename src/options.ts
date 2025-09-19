@@ -31,15 +31,15 @@ export type OptionsResolved = Overwrite<
 >
 
 export function resolveOptions(options: Options): OptionsResolved {
-  let { shouldTransform } = options
-  if (Array.isArray(shouldTransform)) {
-    shouldTransform = (id) => (shouldTransform as string[]).includes(id)
+  if (Array.isArray(options.shouldTransform)) {
+    const { shouldTransform } = options
+    options.shouldTransform = (id) => shouldTransform.includes(id)
   }
 
   return {
     include: options.include || [/\.[cm]?[jt]sx?$/],
     exclude: options.exclude || [/node_modules/, /\.d\.[cm]?ts$/],
     order: 'order' in options ? options.order : 'pre',
-    shouldTransform,
+    shouldTransform: options.shouldTransform,
   }
 }
