@@ -19,8 +19,10 @@ export function RequireCJS(userOptions: Options = {}): Plugin {
   return {
     name: 'rolldown-plugin-require-cjs',
     async buildStart() {
-      await init()
-      initted = true
+      if (!initted) {
+        await init()
+        initted = true
+      }
     },
     options(options) {
       if (options.platform !== 'node') {
