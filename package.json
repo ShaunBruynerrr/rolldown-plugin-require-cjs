@@ -39,6 +39,9 @@
     "release": "bumpp",
     "prepublishOnly": "pnpm run build"
   },
+  "peerDependencies": {
+    "rolldown": "*"
+  },
   "dependencies": {
     "cjs-module-lexer": "^2.1.0",
     "empathic": "^2.0.0",
@@ -53,6 +56,7 @@
     "@types/node": "^24.4.0",
     "bumpp": "^10.2.3",
     "eslint": "^9.35.0",
+    "eslint-plugin-vue": "^10.5.0",
     "prettier": "^3.6.2",
     "rolldown": "1.0.0-beta.38",
     "tsdown": "^0.15.1",

@@ -20,4 +20,8 @@ describe('isPureCJS', async () => {
   test('cjs-module-lexer is not CJS', async () => {
     expect(await isPureCJS('cjs-module-lexer', import.meta.url)).toBe(false)
   })
+
+  test('eslint-plugin-vue is pure CJS', async () => {
+    expect(await isPureCJS('eslint-plugin-vue', import.meta.url)).toBe(true)
+  })
 })
