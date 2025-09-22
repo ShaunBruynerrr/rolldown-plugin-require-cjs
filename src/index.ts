@@ -10,6 +10,8 @@ import type { Plugin } from 'rolldown'
 
 export * from './options'
 
+let initted = false
+
 export function RequireCJS(userOptions: Options = {}): Plugin {
   const { include, exclude, order, shouldTransform } =
     resolveOptions(userOptions)
@@ -18,6 +20,7 @@ export function RequireCJS(userOptions: Options = {}): Plugin {
     name: 'rolldown-plugin-require-cjs',
     async buildStart() {
       await init()
+      initted = true
     },
     options(options) {
       if (options.platform !== 'node') {
@@ -117,6 +120,13 @@ export async function isPureCJS(
   id: string,
   importer: string,
 ): Promise<boolean> {
+  if (!initted) {
+    await init()
+  }
+
+  // ignore Node.js built-in modules, as their performance is comparable
+  if (id.startsWith('node:')) return false
+
   try {
     const importResolved = resolvePathSync(id, { url: importer })
     const requireResolved = require.resolve(id, { paths: [importer] })
