@@ -31,6 +31,21 @@ __require("force");
 export { _default, _default2, _default3, local, local2, named, ns, ns2 };"
 `;
 
+exports[`fixtures > fixtures/node-builtins.ts 1`] = `
+"// node-builtins.js
+//#region tests/fixtures/node-builtins.ts
+const path = process.getBuiltinModule("node:path");
+const _cjs_path2_default = process.getBuiltinModule("node:path");
+const path2 = {
+	..._cjs_path2_default,
+	default: _cjs_path2_default
+};
+const { resolve } = process.getBuiltinModule("path");
+
+//#endregion
+export { path, path2, resolve };"
+`;
+
 exports[`fixtures > fixtures/type-only.ts 1`] = `
 "// type-only.js
 //#region tests/fixtures/type-only.ts

@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises'
+import { builtinModules } from 'node:module'
 import path from 'node:path'
 import { init, parse } from 'cjs-module-lexer'
 import { up } from 'empathic/package'
@@ -13,7 +14,7 @@ export * from './options'
 let initted = false
 
 export function RequireCJS(userOptions: Options = {}): Plugin {
-  const { include, exclude, order, shouldTransform } =
+  const { include, exclude, order, shouldTransform, builtinNodeModules } =
     resolveOptions(userOptions)
 
   return {
@@ -52,7 +53,14 @@ export function RequireCJS(userOptions: Options = {}): Plugin {
             if (stmt.importKind === 'type') continue
 
             const source = stmt.source.value
-            const resolution = await this.resolve(source, id)
+
+            const isBuiltinModule =
+              builtinNodeModules &&
+              (builtinModules.includes(source) || source.startsWith('node:'))
+
+            const resolution = isBuiltinModule
+              ? null // skip resolution for built-in modules
+              : await this.resolve(source, id)
             if (resolution && resolution.external === false) {
               // internal resolution, skip
               // we only care about external CJS modules
@@ -60,14 +68,20 @@ export function RequireCJS(userOptions: Options = {}): Plugin {
             }
 
             const shouldProcess =
-              (await shouldTransform?.(source, id)) ??
-              (await isPureCJS(source, id))
+              isBuiltinModule ||
+              ((await shouldTransform?.(source, id)) ??
+                (await isPureCJS(source, id)))
             if (!shouldProcess) continue
 
             if (stmt.specifiers.length === 0) {
               // import 'cjs-module'
-              // require('cjs-module')
-              s.overwriteNode(stmt, `require(${s.sliceNode(stmt.source)});`)
+              if (isBuiltinModule) {
+                // side-effect free
+                s.removeNode(stmt)
+              } else {
+                // require('cjs-module')
+                s.overwriteNode(stmt, `require(${s.sliceNode(stmt.source)});`)
+              }
               continue
             }
 
@@ -78,7 +92,6 @@ export function RequireCJS(userOptions: Options = {}): Plugin {
               // namespace
               if (specifier.type === 'ImportNamespaceSpecifier') {
                 // import * as name from 'cjs-module'
-                // const name = require('cjs-module')
                 namespaceId = s.sliceNode(specifier.local)
               } else if (specifier.type === 'ImportSpecifier') {
                 if (specifier.importKind === 'type') continue
@@ -91,16 +104,20 @@ export function RequireCJS(userOptions: Options = {}): Plugin {
                 defaultId = s.sliceNode(specifier.local)
               }
             }
-            const requireCode = `require(${s.sliceNode(stmt.source)})`
+            const requireCode = isBuiltinModule
+              ? `process.getBuiltinModule(${s.sliceNode(stmt.source)})`
+              : `require(${s.sliceNode(stmt.source)})`
 
             let str = ''
             if (namespaceId) {
               defaultId ||= `_cjs_${namespaceId}_default`
             }
             if (defaultId) {
+              // const name = require('cjs-module')
               str += `const ${defaultId} = ${requireCode};`
             }
             if (namespaceId) {
+              // const ns = { ...default, default }
               str += `const ${namespaceId} = { ...${defaultId}, default: ${defaultId} };`
             }
             if (Object.keys(mapping).length > 0) {

@@ -18,6 +18,44 @@ See more: https://x.com/sanxiaozhizi/status/1968580207322808812
 npm i rolldown-plugin-require-cjs
 ```
 
+## Options
+
+```ts
+export interface Options {
+  include?: Array<string | RegExp> | string | RegExp
+  exclude?: Array<string | RegExp> | string | RegExp
+  order?: 'pre' | 'post' | undefined
+  /**
+   * A function to determine whether a module should be transformed.
+   * Return `true` to force transformation, `false` to skip transformation,
+   * or `undefined` to let the plugin decide automatically.
+   */
+  shouldTransform?: string[] | TransformFn
+  /**
+   * Whether to transform Node.js built-in modules (e.g., `fs`, `path`)
+   * to `process.getBuiltinModule()` calls, which has the best performance.
+   *
+   * Note: `process.getBuiltinModule` is available since Node.js 20.16.0 and 22.3.0.
+   */
+  builtinNodeModules?: boolean
+}
+
+/**
+ * @returns A boolean or a promise that resolves to a boolean,
+ * or `undefined` to let the plugin decide automatically.
+ */
+export type TransformFn = (
+  /**
+   * The module ID (path) being imported.
+   */
+  id: string,
+  /**
+   * The module ID (path) of the importer.
+   */
+  importer: string,
+) => Awaitable<boolean | undefined | void>
+```
+
 ## Example
 
 ```ts
