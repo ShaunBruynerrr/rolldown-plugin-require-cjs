@@ -10,6 +10,8 @@ Transform ESM imports to CJS requires when the imported module is pure CJS.
 
 Some packages only provide CJS builds (e.g., [`typescript`](https://npmjs.com/package/typescript), [`@babel/parser`](https://npmjs.com/package/@babel/parser)), and importing them using ESM syntax increases Node's `cjs-module-lexer` overhead. This plugin converts ESM imports to CJS requires for such pure CJS packages, allowing Node to skip the cjs-module-lexer step and improve performance.
 
+If performance is insignificant for your project, please do not use this plugin, as it introduces additional complexity and maintenance overhead.
+
 See more: https://x.com/sanxiaozhizi/status/1968580207322808812
 
 ## Install

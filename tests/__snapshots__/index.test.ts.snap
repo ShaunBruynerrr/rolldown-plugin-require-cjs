@@ -2,48 +2,46 @@
 
 exports[`fixtures > fixtures/basic.js 1`] = `
 "// basic.js
-import { createRequire } from "node:module";
+import { createRequire as __cjs_createRequire } from "node:module";
+const __cjs_require = __cjs_createRequire(import.meta.url);
+const _cjs_ns_default = __cjs_require("typescript");
+const ns = { ..._cjs_ns_default, default: _cjs_ns_default };
+const _default = __cjs_require("typescript");
+const {
+  imported: local,
+  named,
+  named: local2,
+  default: _default2,
+  default: _default3
+} = _default;
+__cjs_require("force");
 import "auto";
+import { resolve } from "path";
 
-//#region rolldown:runtime
-var __require = /* @__PURE__ */ createRequire(import.meta.url);
-
-//#endregion
-//#region tests/fixtures/basic.js
-__require("typescript");
-const _cjs_ns_default = __require("typescript");
-const ns = {
-	..._cjs_ns_default,
-	default: _cjs_ns_default
-};
-const _default = __require("typescript");
-const { named, imported: local } = __require("typescript");
-const _default2 = __require("typescript");
-const { named: local2 } = _default2;
-const _default3 = __require("typescript");
-const ns2 = {
-	..._default3,
-	default: _default3
-};
-__require("force");
-
-//#endregion
-export { _default, _default2, _default3, local, local2, named, ns, ns2 };"
+export { _default, _default2, _default3, local, local2, named, ns, ns as ns2, resolve };"
 `;
 
 exports[`fixtures > fixtures/node-builtins.ts 1`] = `
 "// node-builtins.js
-//#region tests/fixtures/node-builtins.ts
-const path = process.getBuiltinModule("node:path");
-const _cjs_path2_default = process.getBuiltinModule("node:path");
-const path2 = {
-	..._cjs_path2_default,
-	default: _cjs_path2_default
-};
-const { resolve } = process.getBuiltinModule("path");
+const {
+  resolve
+} = globalThis.process.getBuiltinModule("path");
+const _cjs_path2_default = globalThis.process.getBuiltinModule("node:path");
+const path2 = { ..._cjs_path2_default, default: _cjs_path2_default };
+const path = globalThis.process.getBuiltinModule("node:path");
+const process = globalThis.process;
 
-//#endregion
-export { path, path2, resolve };"
+export { path, path2, process, resolve };"
+`;
+
+exports[`fixtures > fixtures/shebang.js 1`] = `
+"// shebang.js
+#!shebang
+import { createRequire as __cjs_createRequire } from "node:module";
+const __cjs_require = __cjs_createRequire(import.meta.url);
+__cjs_require("typescript");
+
+export {  };"
 `;
 
 exports[`fixtures > fixtures/type-only.ts 1`] = `

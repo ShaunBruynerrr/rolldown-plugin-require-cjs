@@ -6,6 +6,7 @@ import { up } from 'empathic/package'
 import { generateTransform, MagicStringAST } from 'magic-string-ast'
 import { resolvePathSync } from 'mlly'
 import { parseAst } from 'rolldown/parseAst'
+import { createFilter } from 'unplugin-utils'
 import { resolveOptions, type Options } from './options'
 import type { Plugin } from 'rolldown'
 
@@ -13,9 +14,12 @@ export * from './options'
 
 let initted = false
 
+const REQUIRE = `__cjs_require`
+
 export function RequireCJS(userOptions: Options = {}): Plugin {
-  const { include, exclude, order, shouldTransform, builtinNodeModules } =
+  const { include, exclude, order, cwd, shouldTransform, builtinNodeModules } =
     resolveOptions(userOptions)
+  const filter = createFilter(include, exclude)
 
   return {
     name: 'rolldown-plugin-require-cjs',
@@ -39,14 +43,14 @@ export function RequireCJS(userOptions: Options = {}): Plugin {
         )
       }
     },
-    transform: {
-      filter: {
-        id: { include, exclude },
-      },
+    renderChunk: {
       order,
-      async handler(code, id) {
-        const { body } = parseAst(code, { lang: undefined }, id)
+      async handler(code, { fileName }) {
+        if (!filter(fileName)) return
+
+        const { body } = parseAst(code, { lang: undefined }, fileName)
         const s = new MagicStringAST(code)
+        let usingRequire = false
 
         for (const stmt of body) {
           if (stmt.type === 'ImportDeclaration') {
@@ -58,19 +62,11 @@ export function RequireCJS(userOptions: Options = {}): Plugin {
               builtinNodeModules &&
               (builtinModules.includes(source) || source.startsWith('node:'))
 
-            const resolution = isBuiltinModule
-              ? null // skip resolution for built-in modules
-              : await this.resolve(source, id)
-            if (resolution && resolution.external === false) {
-              // internal resolution, skip
-              // we only care about external CJS modules
-              continue
-            }
-
             const shouldProcess =
               isBuiltinModule ||
-              ((await shouldTransform?.(source, id)) ??
-                (await isPureCJS(source, id)))
+              ((await shouldTransform?.(source, cwd)) ??
+                (await isPureCJS(source, cwd)))
+
             if (!shouldProcess) continue
 
             if (stmt.specifiers.length === 0) {
@@ -80,56 +76,85 @@ export function RequireCJS(userOptions: Options = {}): Plugin {
                 s.removeNode(stmt)
               } else {
                 // require('cjs-module')
-                s.overwriteNode(stmt, `require(${s.sliceNode(stmt.source)});`)
+                s.overwriteNode(stmt, `${REQUIRE}(${JSON.stringify(source)});`)
+                usingRequire = true
               }
               continue
             }
 
-            const mapping: Record<string, string> = {}
+            const mapping: [string, string][] = []
             let namespaceId: string | undefined
             let defaultId: string | undefined
             for (const specifier of stmt.specifiers) {
               // namespace
               if (specifier.type === 'ImportNamespaceSpecifier') {
                 // import * as name from 'cjs-module'
-                namespaceId = s.sliceNode(specifier.local)
+                namespaceId = specifier.local.name
               } else if (specifier.type === 'ImportSpecifier') {
                 if (specifier.importKind === 'type') continue
                 // named import
-                mapping[s.sliceNode(specifier.imported)] = s.sliceNode(
-                  specifier.local,
-                )
+                mapping.push([
+                  s.sliceNode(specifier.imported),
+                  specifier.local.name,
+                ])
               } else {
                 // default import
-                defaultId = s.sliceNode(specifier.local)
+                defaultId = specifier.local.name
               }
             }
-            const requireCode = isBuiltinModule
-              ? `process.getBuiltinModule(${s.sliceNode(stmt.source)})`
-              : `require(${s.sliceNode(stmt.source)})`
 
-            let str = ''
+            let requireCode: string
+            if (isBuiltinModule) {
+              requireCode =
+                source === 'process' || source === 'node:process'
+                  ? 'globalThis.process'
+                  : `globalThis.process.getBuiltinModule(${JSON.stringify(source)})`
+            } else {
+              requireCode = `__cjs_require(${JSON.stringify(source)})`
+              usingRequire = true
+            }
+
+            const codes: string[] = []
             if (namespaceId) {
               defaultId ||= `_cjs_${namespaceId}_default`
             }
             if (defaultId) {
               // const name = require('cjs-module')
-              str += `const ${defaultId} = ${requireCode};`
+              codes.push(`const ${defaultId} = ${requireCode};`)
             }
             if (namespaceId) {
               // const ns = { ...default, default }
-              str += `const ${namespaceId} = { ...${defaultId}, default: ${defaultId} };`
+              codes.push(
+                `const ${namespaceId} = { ...${defaultId}, default: ${defaultId} };`,
+              )
             }
-            if (Object.keys(mapping).length > 0) {
-              str += `const { ${Object.entries(mapping)
-                .map(([k, v]) => `${k}: ${v}`)
-                .join(', ')} } = ${defaultId || requireCode};`
+            if (mapping.length > 0) {
+              codes.push(
+                `const {\n${mapping
+                  .map(([k, v]) => `  ${k === v ? v : `${k}: ${v}`}`)
+                  .join(',\n')}\n} = ${defaultId || requireCode};`,
+              )
             }
-            s.overwriteNode(stmt, str)
+            s.overwriteNode(stmt, codes.join('\n'))
           }
         }
 
-        return generateTransform(s, id)
+        if (usingRequire) {
+          const preamble = builtinNodeModules
+            ? `const ${REQUIRE} = globalThis.process.getBuiltinModule("module").createRequire(import.meta.url);\n`
+            : `import { createRequire as __cjs_createRequire } from "node:module";
+const ${REQUIRE} = __cjs_createRequire(import.meta.url);\n`
+
+          if (code[0] === '#') {
+            // skip shebang line
+            const firstNewLineIndex = code.indexOf('\n') + 1
+            s.appendLeft(firstNewLineIndex, preamble)
+          } else {
+            s.prepend(preamble)
+          }
+        }
+
+        return generateTransform(s, fileName)
       },
     },
   }

@@ -6,5 +6,16 @@ import _default2, { named as local2 } from 'typescript'
 import _default3, * as ns2 from 'typescript'
 import 'force'
 import 'auto'
+import { resolve } from 'path'
 
-export { ns, _default, named, local, _default2, local2, _default3, ns2 }
+export {
+  ns,
+  _default,
+  named,
+  local,
+  _default2,
+  local2,
+  _default3,
+  ns2,
+  resolve,
+}
