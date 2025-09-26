@@ -14,6 +14,10 @@ If performance is insignificant for your project, please do not use this plugin,
 
 See more: https://x.com/sanxiaozhizi/status/1968580207322808812
 
+## Appeal
+
+We encourage the JavaScript ecosystem to continue its transition toward ESM. If you maintain a package that is still CJS-only, please consider offering an ESM build or migrating fully to ESM. Doing so will reduce reliance on plugins like this one and enhance the overall performance of the ecosystem.
+
 ## Install
 
 ```bash
