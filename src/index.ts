@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises'
-import { builtinModules } from 'node:module'
+import { isBuiltin } from 'node:module'
 import path from 'node:path'
 import { init, parse } from 'cjs-module-lexer'
 import { up } from 'empathic/package'
@@ -58,10 +58,7 @@ export function RequireCJS(userOptions: Options = {}): Plugin {
 
             const source = stmt.source.value
 
-            const isBuiltinModule =
-              builtinNodeModules &&
-              (builtinModules.includes(source) || source.startsWith('node:'))
-
+            const isBuiltinModule = builtinNodeModules && isBuiltin(source)
             const shouldProcess =
               isBuiltinModule ||
               ((await shouldTransform?.(source, cwd)) ??
