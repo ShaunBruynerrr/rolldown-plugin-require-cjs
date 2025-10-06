@@ -1,4 +1,3 @@
-import process from 'node:process'
 import type { FilterPattern } from 'unplugin-utils'
 
 type Awaitable<T> = T | Promise<T>
