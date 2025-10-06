@@ -22,7 +22,6 @@ export interface Options {
   include?: FilterPattern
   exclude?: FilterPattern
   order?: 'pre' | 'post' | undefined
-  cwd?: string
   /**
    * A function to determine whether a module should be transformed.
    * Return `true` to force transformation, `false` to skip transformation,
@@ -52,10 +51,9 @@ export function resolveOptions(options: Options): OptionsResolved {
   }
 
   return {
-    include: options.include || [/\.[cm]?[jt]sx?$/],
+    include: options.include || [/\.m?[jt]sx?$/],
     exclude: options.exclude || [/node_modules/, /\.d\.[cm]?ts$/],
     order: 'order' in options ? options.order : 'pre',
-    cwd: options.cwd || process.cwd(),
     shouldTransform: options.shouldTransform,
     builtinNodeModules: !!options.builtinNodeModules,
   }

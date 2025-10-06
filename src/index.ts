@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import { isBuiltin } from 'node:module'
 import path from 'node:path'
+import process from 'node:process'
 import { init, parse } from 'cjs-module-lexer'
 import { up } from 'empathic/package'
 import { generateTransform, MagicStringAST } from 'magic-string-ast'
@@ -17,10 +18,10 @@ let initted = false
 const REQUIRE = `__cjs_require`
 
 export function RequireCJS(userOptions: Options = {}): Plugin {
-  const { include, exclude, order, cwd, shouldTransform, builtinNodeModules } =
+  const { include, exclude, order, shouldTransform, builtinNodeModules } =
     resolveOptions(userOptions)
   const filter = createFilter(include, exclude)
-
+  let cwd: string
   return {
     name: 'rolldown-plugin-require-cjs',
     async buildStart() {
@@ -35,6 +36,7 @@ export function RequireCJS(userOptions: Options = {}): Plugin {
           '`rolldown-plugin-require-cjs` plugin is designed only for the Node.js environment. Please make sure to set `platform: "node"` in the options.',
         )
       }
+      cwd = options.cwd || process.cwd()
     },
     outputOptions(options) {
       if (!['es', 'esm', 'module'].includes(options.format as any)) {
@@ -45,7 +47,7 @@ export function RequireCJS(userOptions: Options = {}): Plugin {
     },
     renderChunk: {
       order,
-      async handler(code, { fileName }) {
+      async handler(code, { fileName }, { file, dir }) {
         if (!filter(fileName)) return
 
         const { body } = parseAst(code, { lang: undefined }, fileName)
@@ -59,10 +61,16 @@ export function RequireCJS(userOptions: Options = {}): Plugin {
             const source = stmt.source.value
 
             const isBuiltinModule = builtinNodeModules && isBuiltin(source)
+
+            const distFilename =
+              file || (dir ? path.join(dir, fileName) : fileName)
+            const importer = cwd
+              ? path.resolve(cwd, distFilename)
+              : distFilename
             const shouldProcess =
               isBuiltinModule ||
-              ((await shouldTransform?.(source, cwd)) ??
-                (await isPureCJS(source, cwd)))
+              ((await shouldTransform?.(source, importer)) ??
+                (await isPureCJS(source, importer)))
 
             if (!shouldProcess) continue
 
